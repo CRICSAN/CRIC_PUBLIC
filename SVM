@@ -1,0 +1,127 @@
+import pandas as pd
+import numpy as np
+from sklearn.svm import SVC
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import datasets
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import classification_report
+from sklearn.datasets import  make_classification
+
+
+
+
+dataset = pd.read_csv("heart.csv")
+dataset.head()
+
+
+X = dataset[["age", "sex", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal"]].to_numpy()
+y = dataset["target"].to_numpy()
+X.shape, y.shape
+
+
+
+y = y.reshape(303, 1)
+y.shape
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+
+print("Train:", X_train.shape)
+print("Test:", X_test.shape)
+
+
+clf = SVC(C=1, kernel="linear")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+
+print(classification_report(y_test, pred))
+
+
+
+clf = SVC(C=1, kernel="poly")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+
+print(classification_report(y_test, pred))edict(X_test)
+
+
+
+
+clf = SVC(C=1, kernel="rbf")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+
+print(classification_report(y_test, pred))
+
+
+
+
+
+----------normalización de X   --------------------------------
+
+
+scaler = MinMaxScaler()
+Xn = scaler.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(Xn, y, test_size=0.3, random_state=42)
+
+
+
+
+---------LINEAR KERNEL
+
+
+clf = SVC(C=1, kernel="linear")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+clf = SVC(C=5, kernel="linear")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+clf = SVC(C=10, kernel="linear")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+
+-------- KERNEL POLY
+
+clf = SVC(C=1, kernel="poly")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+clf = SVC(C=5, kernel="poly")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+clf = SVC(C=10, kernel="poly")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+
+
+------KERNEL RBF
+
+
+clf = SVC(C=1, kernel="rbf")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+clf = SVC(C=5, kernel="rbf")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
+
+clf = SVC(C=10, kernel="rbf")
+clf.fit(X_train, y_train)
+pred=clf.predict(X_test)
+print(classification_report(y_test, pred))
