@@ -11,12 +11,12 @@ from sklearn.datasets import  make_classification
 
 
 
-dataset = pd.read_csv("heart.csv")
+dataset = pd.read_csv("FILE.csv")
 dataset.head()
 
 
-X = dataset[["age", "sex", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal"]].to_numpy()
-y = dataset["target"].to_numpy()
+X = dataset[["XVECTOR1", "XVECTOR2"]].to_numpy()
+y = dataset["YVECTOR"].to_numpy()
 X.shape, y.shape
 
 
@@ -59,7 +59,7 @@ print(classification_report(y_test, pred))
 
 
 
-----------normalización de X   --------------------------------
+----------Normalization og X   --------------------------------
 
 
 scaler = MinMaxScaler()
@@ -70,7 +70,7 @@ X_train, X_test, y_train, y_test = train_test_split(Xn, y, test_size=0.3, random
 
 
 
----------LINEAR KERNEL
+---------LINEAR KERNEL   ---------------------------
 
 
 clf = SVC(C=1, kernel="linear")
