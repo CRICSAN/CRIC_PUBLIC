@@ -1,0 +1,109 @@
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(sf)
+library(raster)
+library(dplyr)
+library(sp)
+#Para Ensam ML
+library(landmap)
+library(rgdal)
+library(geoR)
+library(plotKML)
+library(raster)
+library(glmnet)
+library(xgboost)
+library(kernlab)
+library(deepnet)
+library(mlr)
+library(spdep)
+
+```
+
+```{r}
+poli <- st_read("shape.shp")
+proyec <- "+proj=utm +zone=14 +datum=WGS84"
+```
+
+```{r}
+
+#Cargo los raster
+temperatura <- raster("p.tif")
+clorofila <- raster("a.tif")
+```
+
+
+
+```{r}
+#Los resampleo porque no tienem el mismo tamaño de pixel, lo recorto de acuerdo al poligono, reproyecto y lo transformo a pixels
+chla_res <- raster::resample(clorofila, temperatura, method="bilinear") %>% mask(poli) %>% projectRaster(crs = proyec)%>% 
+  as("SpatialPixelsDataFrame") %>% as.data.frame() # %>% rename(chla = krigg1)
+
+```
+
+
+```{r}
+temp_mask <- mask(temperatura, poli) %>% projectRaster(crs = proyec)%>% as("SpatialPixelsDataFrame") %>% 
+  as.data.frame() #%>% rename(tem = fin_for1)
+```
+
+```{r}
+#Los uno las covariables
+Chla_temp <- cbind(chla_res, temp_mask) 
+```
+
+```{r}
+#Se transforma pixel
+Chla_temp_SpaPixelDF = SpatialPixelsDataFrame(points = Chla_temp[c("x", "y")], data = Chla_temp, 
+                                         proj4string = CRS(proyec))
+```
+
+
+```{r}
+datos_gam <- read.csv("PM.csv") %>% select(latitud, longitud,diecinueve)%>% 
+#rename(gam="response") 
+st_as_sf(coords = c("longitud","latitud"), crs = 4326) %>% st_transform(crs =32614)
+
+datos_gam_sfcclxy <- st_coordinates(datos_gam) %>% as.data.frame()
+
+datos_gam_sfcclfin <- cbind(datos_gam, datos_gam_sfcclxy) %>% rename(x= "X", y = "Y")
+```
+
+```{r}
+datos_gam_sfcclfin_sp <- as_Spatial(datos_gam_sfcclfin)
+```
+
+
+```{r}
+muestra_r <- train.spLearner(datos_gam_sfcclfin_sp["diecinueve"], covariates=Chla_temp_SpaPixelDF[,c("a","p")], 
+                             lambda = 1, parallel=FALSE)
+```
+
+```{r}
+
+summary(muestra_r@spModel$learner.model$super.model$learner.model)
+```
+
+
+```{r}
+datos_gam_sfcclfin_sp.y <- predict(muestra_r)
+```
+
+```{r}
+gam ~ regr.ranger + regr.xgboost + regr.nnet + regr.ksvm + regr.cvglmnet
+```
+
+
+```{r}
+par(mfrow=c(1,2), oma=c(0,0,0,1), mar=c(0,0,4,3))
+plot(raster(datos_gam_sfcclfin_sp.y$pred["response"]), col=R_pal[["rainbow_75"]][4:20],
+     main="Predictions spLearner", axes=FALSE, box=FALSE)
+#points(datos_ambien_ccl_sp, pch="+")
+plot(raster(datos_gam_sfcclfin_sp.y$pred["model.error"]), col=rev(bpy.colors()),
+     main="Prediction errors", axes=FALSE, box=FALSE)
+```
